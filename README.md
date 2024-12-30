@@ -1,4 +1,4 @@
-# RPA to collect data from Website and fill out excel 
+# 11-20-2024RPA to collect data from Website and fill out excel 
 
 Documentation
 
@@ -267,7 +267,7 @@ Done
 
 
 
-# RPA-with-python 12-11-2024
+# 12-11-2024 RPA-with-python 
 Using RPA with python to autamte repetitive tasks
 
 Automated Form Submission and Email Verification
