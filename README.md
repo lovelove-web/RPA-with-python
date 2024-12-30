@@ -1,3 +1,272 @@
+# RPA to collect data from Website and fill out excel 
+
+Documentation
+
+Book Store Automation Script
+This script automates comprehensive testing and data collection for an online book store. It performs the following tasks:
+
+Data Collection: Extracts book titles and prices from the website.
+Validation Tests: Tests cart functionality, price sorting, and search features.
+Data Export: Saves the collected data into an Excel file for further analysis.
+Prerequisites
+Python Modules:
+
+robocorp.tasks
+RPA.Excel.Files
+RPA.Browser.Selenium
+Browser Configuration:
+
+The script uses a browser automation library to interact with the website. Ensure you have Selenium installed and properly configured.
+Functionality Overview
+book_store_automation
+Main function that orchestrates the workflow:
+
+Opens the book store website.
+Collects book titles and prices.
+Performs validation tests:
+Cart functionality.
+Price sorting.
+Search feature.
+Exports collected data to an Excel file.
+Logs the results of all validation tests.
+open_website
+Navigates to the book store's website.
+
+collect_book_data
+Extracts book titles and prices from the website:
+
+Retrieves all book titles.
+Converts price text to numerical values.
+validate_cart_functionality
+Tests cart addition and verifies if the cart count updates correctly:
+
+Checks the initial state of the cart.
+Adds a book to the cart and verifies the cart count.
+validate_sort_by_price
+Tests the price sorting functionality:
+
+Sorts books by price.
+Validates if the displayed prices are sorted correctly.
+validate_search_functionality
+Tests the search feature:
+
+Enters a search query.
+Checks if relevant results are returned.
+Prints results if found.
+export_book_data
+Exports collected book data (titles and prices) to an Excel file:
+
+Adds a header row and the data rows.
+Applies styling to the Excel sheet.
+Saves and closes the file.
+print_validation_results
+Logs the results of validation tests in a human-readable format.
+
+Example Output
+Upon execution, the script:
+
+Opens the book store website.
+Collects book titles and prices, such as:
+Titles: "AI Foundations", "Python for Beginners"
+Prices: $25.99, $33.99
+Validates cart functionality, sorting, and search features.
+Exports book data to an Excel file (BookStore_Inventory.xlsx).
+Logs validation results, e.g.:
+yaml
+Copy code
+Validation Results:
+Cart Functionality: Passed
+Price Sorting: Failed
+Search Functionality: Passed
+Error Handling
+The script includes exception handling for:
+
+Website navigation issues.
+Data collection errors.
+Validation test failures.
+Excel export errors.
+Usage
+Run the script using the command:
+
+bash
+Copy code
+python book_store_automation.py
+Dependencies
+Selenium WebDriver for browser interactions.
+RPA.Excel.Files for Excel operations.
+Ensure that the target website is accessible and matches the structure expected by the script.
+Link of how it works : https://youtu.be/94EN3-SDrZo?si=EuyI6PMCznxmztVu 
+This is the code: 
+
+```Python
+from robocorp.tasks import task
+from robocorp import browser
+from RPA.Excel.Files import Files
+from RPA.Browser.Selenium import Selenium
+
+@task
+def book_store_automation():
+    """
+    Comprehensive book store website testing automation:
+    - Collect book titles and prices
+    - Validate cart functionality
+    - Test sorting and search features
+    - Export data to Excel
+    """
+    browser.configure(slowmo=50)
+    try:
+        open_website()
+        titles, prices = collect_book_data()
+        
+        # Perform various validations
+        validation_results = {
+            'cart_functionality': validate_cart_functionality(),
+            'price_sorting': validate_sort_by_price(),
+            'search_functionality': validate_search_functionality()
+        }
+        # Export results to Excel
+        export_book_data(titles, prices)
+        # Log validation results
+        print_validation_results(validation_results)
+    
+    except Exception as e:
+        print(f"An error occurred during automation: {e}")
+
+def open_website():
+    """Navigate to the book store website"""
+    browser.goto("https://fspacheco.github.io/rpa-challenge/kirjakauppa.html")
+
+def collect_book_data():
+    """Extract book titles and prices"""
+    page = browser.page()
+    
+    # More robust data collection
+    try:
+        titles = page.locator("div.kirjan-nimi").all_text_contents()
+        prices_text = page.locator("div.hinta").all_text_contents()
+        prices = [float(p.replace('$', '').strip()) for p in prices_text]
+        return titles, prices
+    
+    except Exception as e:
+        print(f"Error collecting book data: {e}")
+        return [], []
+
+def validate_cart_functionality():
+    """Test cart addition and count update"""
+    page = browser.page()
+    
+    #try:
+        # Check initial cart state
+    initial_cart_count = (page.locator("#cart-info").text_content())
+    initial_cart_count = page.locator("#cart-info").text_content()
+    initial_cart_count = initial_cart_count.replace('Ostoskorin tuotteet::','')
+    initial_cart_count= int(initial_cart_count)    
+    if initial_cart_count != 0:
+        print("Warning: Initial cart not empty")
+        
+        # Add first book to cart
+    page.locator("text=Lisää Ostoskoriin").first.click()
+        
+    initial_cart_count = page.locator("#cart-info").text_content()
+    initial_cart_count = initial_cart_count.replace('Ostoskorin tuotteet::','')
+    initial_cart_count= int(initial_cart_count)
+    if initial_cart_count != 1:
+        print("Warning: Error of cart count")
+
+def validate_sort_by_price():
+    """Test price sorting functionality"""
+    page = browser.page()
+    try:
+        # Trigger price sorting
+        page.locator("#sortSelect").select_option("price")
+        
+        # Collect sorted prices
+        sorted_prices_text = page.locator("div.hinta").all_text_contents()
+        sorted_prices = [float(p.replace('$', '').strip()) for p in sorted_prices_text]
+        
+        if sorted_prices_text != 33.99:
+            print("Warning: Error of sort of prices")
+            
+        return sorted_prices == sorted(sorted_prices)
+    
+    except Exception as e:
+        print(f"Price sorting validation error: {e}")
+        return False
+
+def validate_search_functionality():
+    """Test book search feature"""
+    page = browser.page()
+    
+    try:
+        search_query = "AI Foundations"
+        page.locator("#searchInput").fill(search_query)
+        
+        # Press Enter or click search button to trigger search
+        page.keyboard.press("Enter")
+        # Or if there's a specific search button:
+        # page.locator("#search-button").click()
+        # Wait for search results to load
+        # Get search results
+        search_results = page.locator("#searchInput").all_text_contents()
+        # Check if any results found
+        if not search_results:
+            print(f"No books found for search query: '{search_query}'")
+            return False
+        
+        # Print results if found
+        print(f"Warning: Search results for '{search_query}' was not found.\nPlease fix the website")
+        for result in search_results:
+            print(result)
+        
+        return True
+    except Exception as e:
+        # Handle cases where search element is not found or other errors
+        if "Timeout" in str(e):
+            print(f"Warning: No search results found for '{search_query}'")
+        else:
+            print(f"Search functionality error: {e}")
+        return False
+    
+def export_book_data(titles, prices):
+    """Save book data to Excel with enhanced error handling"""
+    try:
+        excel = Files()
+        excel.create_workbook("BookStore_Inventory.xlsx", sheet_name="Books")
+        
+        # Add header
+        excel.append_rows_to_worksheet([("Title", "Price")])
+        
+        # Add book data
+        for title, price in zip(titles, prices):
+            excel.append_rows_to_worksheet([(title, price)])
+        # Style spreadsheet
+        excel.auto_size_columns("A", width=55)
+        excel.auto_size_columns("B", width=15)
+        excel.set_styles("B12", bold=True, font_name="Arial", size=14, cell_fill="Yellow")
+        excel.save_workbook()
+        excel.close_workbook()
+        
+        print("Book data successfully exported to Excel")
+    
+    except Exception as e:
+        print(f"Excel export error: {e}")
+def print_validation_results(results):
+    """Print detailed validation results"""
+    print("\nValidation Results:")
+    for test, passed in results.items():
+        status = "Passed" if passed else "Failed"
+        print(f"{test.replace('_', ' ').title()}: {status}")
+
+if __name__ == "__main__":
+    book_store_automation()
+```
+Done
+
+
+
+
+
+
 # RPA-with-python 12-11-2024
 Using RPA with python to autamte repetitive tasks
 
@@ -172,6 +441,7 @@ def collect_results():
     
     page.screenshot(path="output/form_confirmation.png")
     
-    
 ```
 Done
+
+Link to see how it works: https://youtu.be/5sP54LrLflI?si=kz-eHd8L8Qhdj1G8
