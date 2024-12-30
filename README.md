@@ -96,6 +96,7 @@ Selenium WebDriver for browser interactions.
 RPA.Excel.Files for Excel operations.
 Ensure that the target website is accessible and matches the structure expected by the script.
 Link of how it works : https://youtu.be/94EN3-SDrZo?si=EuyI6PMCznxmztVu 
+
 This is the code: 
 
 ```Python
@@ -442,6 +443,7 @@ def collect_results():
     page.screenshot(path="output/form_confirmation.png")
     
 ```
-Done
 
-Link to see how it works: https://youtu.be/5sP54LrLflI?si=kz-eHd8L8Qhdj1G8
+Link to see how it works: https://youtu.be/5sP54LrLflI?si=kz-eHd8L8Qhdj1G8 
+
+Done
